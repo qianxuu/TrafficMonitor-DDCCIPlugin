@@ -1,4 +1,5 @@
 #include "MonitorController.h"
+#include <highlevelmonitorconfigurationapi.h>
 #include <lowlevelmonitorconfigurationapi.h>
 #include <physicalmonitorenumerationapi.h>
 #include <windows.h>
@@ -22,7 +23,7 @@ BOOL CALLBACK MonitorController::MonitorEnumProc(HMONITOR hMonitor,
   return FALSE;
 }
 
-bool MonitorController::TurnOff() {
+HANDLE MonitorController::OpenFirstPhysicalMonitor() {
   EnumContext ctx;
   HDC hdc = GetDC(nullptr);
   EnumDisplayMonitors(hdc, nullptr, MonitorEnumProc,
@@ -30,31 +31,64 @@ bool MonitorController::TurnOff() {
   ReleaseDC(nullptr, hdc);
 
   if (!ctx.hResult)
-    return false;
+    return nullptr;
 
   DWORD cPhysicalMonitors = 0;
   if (!GetNumberOfPhysicalMonitorsFromHMONITOR(ctx.hResult,
-                                               &cPhysicalMonitors) ||
+                                                &cPhysicalMonitors) ||
       cPhysicalMonitors == 0)
-    return false;
+    return nullptr;
 
   PHYSICAL_MONITOR *pPhysicalMonitors = new PHYSICAL_MONITOR[cPhysicalMonitors];
   if (!GetPhysicalMonitorsFromHMONITOR(ctx.hResult, cPhysicalMonitors,
                                        pPhysicalMonitors)) {
     delete[] pPhysicalMonitors;
-    return false;
+    return nullptr;
   }
-
-  bool success = false;
 
   HANDLE hPhysicalMonitor = pPhysicalMonitors[0].hPhysicalMonitor;
-
-  if (SetVCPFeature(hPhysicalMonitor, 0xD6, 0x04)) {
-    success = true;
-  }
-
-  DestroyPhysicalMonitors(cPhysicalMonitors, pPhysicalMonitors);
   delete[] pPhysicalMonitors;
+  return hPhysicalMonitor;
+}
 
+void MonitorController::ClosePhysicalMonitor(HANDLE hMonitor) {
+  if (hMonitor) {
+    DestroyPhysicalMonitor(hMonitor);
+  }
+}
+
+bool MonitorController::TurnOff() {
+  HANDLE hMonitor = OpenFirstPhysicalMonitor();
+  if (!hMonitor)
+    return false;
+
+  bool success = SetVCPFeature(hMonitor, 0xD6, 0x04) != 0;
+
+  ClosePhysicalMonitor(hMonitor);
   return success;
+}
+
+bool MonitorController::SetBrightness(int value) {
+  HANDLE hMonitor = OpenFirstPhysicalMonitor();
+  if (!hMonitor)
+    return false;
+
+  bool success = SetMonitorBrightness(hMonitor, static_cast<DWORD>(value)) != 0;
+
+  ClosePhysicalMonitor(hMonitor);
+  return success;
+}
+
+int MonitorController::GetBrightness() {
+  HANDLE hMonitor = OpenFirstPhysicalMonitor();
+  if (!hMonitor)
+    return -1;
+
+  DWORD minBrightness = 0, currentBrightness = 0, maxBrightness = 0;
+  bool success =
+      GetMonitorBrightness(hMonitor, &minBrightness, &currentBrightness,
+                           &maxBrightness) != 0;
+
+  ClosePhysicalMonitor(hMonitor);
+  return success ? static_cast<int>(currentBrightness) : -1;
 }
