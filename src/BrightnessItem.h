@@ -12,10 +12,12 @@ public:
 
   void UpdateBrightness(int value);
   void SetFormatOptions(bool noPercent, bool spaceBeforeUnit);
-  const wchar_t *GetFormattedSampleText() const;
 
 private:
   int m_brightness = -1;
   bool m_noPercent = false;
   bool m_spaceBeforeUnit = false;
+  wchar_t m_valueText[16] = L"N/A";
+
+  void FormatValueText();
 };

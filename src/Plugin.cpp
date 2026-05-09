@@ -66,7 +66,7 @@ const wchar_t *Plugin::GetCommandName(int command_index) {
   case 11:
     return L"亮度 100";
   default:
-    return nullptr;
+    return L"";
   }
 }
 
@@ -76,6 +76,7 @@ void Plugin::OnPluginCommand(int command_index, void *hWnd, void *para) {
 
   if (command_index == 0) {
     MonitorController::TurnOff();
+    m_brightnessItem.UpdateBrightness(-1);
   } else if (command_index >= 1 && command_index <= 11) {
     int brightness = (command_index - 1) * 10;
     int actual = MonitorController::SetAndGetBrightness(brightness);
@@ -124,7 +125,8 @@ void Plugin::ApplyDisplayOptions() {
 
   if (m_drawTaskbarWnd) {
     noPercent = m_hasTaskbarNoPercent ? m_taskbarNoPercent : false;
-    spaceBeforeUnit = m_hasTaskbarSpaceBeforeUnit ? m_taskbarSpaceBeforeUnit : false;
+    spaceBeforeUnit =
+        m_hasTaskbarSpaceBeforeUnit ? m_taskbarSpaceBeforeUnit : false;
   } else {
     noPercent = m_hasMainNoPercent ? m_mainNoPercent : false;
     spaceBeforeUnit = m_hasMainSpaceBeforeUnit ? m_mainSpaceBeforeUnit : false;

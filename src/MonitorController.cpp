@@ -1,4 +1,5 @@
 #include "MonitorController.h"
+#include <algorithm>
 #include <highlevelmonitorconfigurationapi.h>
 #include <lowlevelmonitorconfigurationapi.h>
 #include <physicalmonitorenumerationapi.h>
@@ -73,7 +74,9 @@ bool MonitorController::SetBrightness(int value) {
   if (!hMonitor)
     return false;
 
-  bool success = SetMonitorBrightness(hMonitor, static_cast<DWORD>(value)) != 0;
+  int v = std::clamp(value, 0, 100);
+  DWORD clamped = static_cast<DWORD>(v);
+  bool success = SetMonitorBrightness(hMonitor, clamped) != 0;
 
   ClosePhysicalMonitor(hMonitor);
   return success;
@@ -99,7 +102,9 @@ int MonitorController::SetAndGetBrightness(int value) {
   if (!hMonitor)
     return -1;
 
-  if (SetMonitorBrightness(hMonitor, static_cast<DWORD>(value)) == 0) {
+  int v = std::clamp(value, 0, 100);
+
+  if (SetMonitorBrightness(hMonitor, static_cast<DWORD>(v)) == 0) {
     ClosePhysicalMonitor(hMonitor);
     return -1;
   }
