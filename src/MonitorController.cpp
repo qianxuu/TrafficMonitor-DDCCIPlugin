@@ -35,7 +35,7 @@ HANDLE MonitorController::OpenFirstPhysicalMonitor() {
 
   DWORD cPhysicalMonitors = 0;
   if (!GetNumberOfPhysicalMonitorsFromHMONITOR(ctx.hResult,
-                                                &cPhysicalMonitors) ||
+                                               &cPhysicalMonitors) ||
       cPhysicalMonitors == 0)
     return nullptr;
 
@@ -84,10 +84,11 @@ int MonitorController::GetBrightness() {
   if (!hMonitor)
     return -1;
 
-  DWORD minBrightness = 0, currentBrightness = 0, maxBrightness = 0;
-  bool success =
-      GetMonitorBrightness(hMonitor, &minBrightness, &currentBrightness,
-                           &maxBrightness) != 0;
+  DWORD minBrightness = 0;
+  DWORD currentBrightness = 0;
+  DWORD maxBrightness = 0;
+  bool success = GetMonitorBrightness(hMonitor, &minBrightness,
+                                      &currentBrightness, &maxBrightness) != 0;
 
   ClosePhysicalMonitor(hMonitor);
   return success ? static_cast<int>(currentBrightness) : -1;

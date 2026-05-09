@@ -3,15 +3,11 @@
 
 const wchar_t *BrightnessItem::GetItemName() const { return L"亮度"; }
 
-const wchar_t *BrightnessItem::GetItemId() const {
-  return L"DDCCI_Brightness";
-}
+const wchar_t *BrightnessItem::GetItemId() const { return L"DDCCI_Brightness"; }
 
 const wchar_t *BrightnessItem::GetItemLableText() const { return L"亮度"; }
 
-const wchar_t *BrightnessItem::GetItemValueText() const {
-  return m_valueText;
-}
+const wchar_t *BrightnessItem::GetItemValueText() const { return m_valueText; }
 
 const wchar_t *BrightnessItem::GetItemValueSampleText() const {
   return L"100%";
