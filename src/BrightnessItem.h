@@ -18,5 +18,4 @@ private:
   int m_brightness = -1;
   bool m_noPercent = false;
   bool m_spaceBeforeUnit = false;
-  wchar_t m_valueText[16] = L"";
 };

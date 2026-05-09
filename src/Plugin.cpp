@@ -86,11 +86,14 @@ void Plugin::OnInitialize(ITrafficMonitor *pApp) {
 void Plugin::OnExtenedInfo(ExtendedInfoIndex index, const wchar_t *data) {
   switch (index) {
   case EI_MAIN_WND_NOT_SHOW_PERCENT:
-    m_noPercent = (data && data[0] == L'1');
+    m_noPercent = (data && _wtoi(data) != 0);
     m_brightnessItem.SetFormatOptions(m_noPercent, m_spaceBeforeUnit);
     break;
   case EI_MAIN_WND_SPERATE_WITH_SPACE:
-    m_spaceBeforeUnit = (data && data[0] == L'1');
+    m_spaceBeforeUnit = (data && _wtoi(data) != 0);
+    m_brightnessItem.SetFormatOptions(m_noPercent, m_spaceBeforeUnit);
+    break;
+  case EI_DRAW_TASKBAR_WND:
     m_brightnessItem.SetFormatOptions(m_noPercent, m_spaceBeforeUnit);
     break;
   default:
