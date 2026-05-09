@@ -1,5 +1,12 @@
 #include "Plugin.h"
 #include "MonitorController.h"
+#include <cwchar>
+
+static bool ParseBoolData(const wchar_t *data) {
+  if (data == nullptr || data[0] == L'\0')
+    return false;
+  return std::wcscmp(data, L"1") == 0;
+}
 
 int Plugin::GetAPIVersion() const { return 7; }
 
@@ -85,20 +92,45 @@ void Plugin::OnInitialize(ITrafficMonitor *pApp) {
 
 void Plugin::OnExtenedInfo(ExtendedInfoIndex index, const wchar_t *data) {
   switch (index) {
+  case EI_DRAW_TASKBAR_WND:
+    m_drawTaskbarWnd = ParseBoolData(data);
+    break;
   case EI_MAIN_WND_NOT_SHOW_PERCENT:
-    m_noPercent = (data && _wtoi(data) != 0);
-    m_brightnessItem.SetFormatOptions(m_noPercent, m_spaceBeforeUnit);
+    m_mainNoPercent = ParseBoolData(data);
+    m_hasMainNoPercent = true;
     break;
   case EI_MAIN_WND_SPERATE_WITH_SPACE:
-    m_spaceBeforeUnit = (data && _wtoi(data) != 0);
-    m_brightnessItem.SetFormatOptions(m_noPercent, m_spaceBeforeUnit);
+    m_mainSpaceBeforeUnit = ParseBoolData(data);
+    m_hasMainSpaceBeforeUnit = true;
     break;
-  case EI_DRAW_TASKBAR_WND:
-    m_brightnessItem.SetFormatOptions(m_noPercent, m_spaceBeforeUnit);
+  case EI_TASKBAR_WND_NOT_SHOW_PERCENT:
+    m_taskbarNoPercent = ParseBoolData(data);
+    m_hasTaskbarNoPercent = true;
+    break;
+  case EI_TASKBAR_WND_SPERATE_WITH_SPACE:
+    m_taskbarSpaceBeforeUnit = ParseBoolData(data);
+    m_hasTaskbarSpaceBeforeUnit = true;
     break;
   default:
     break;
   }
+
+  ApplyDisplayOptions();
+}
+
+void Plugin::ApplyDisplayOptions() {
+  bool noPercent;
+  bool spaceBeforeUnit;
+
+  if (m_drawTaskbarWnd) {
+    noPercent = m_hasTaskbarNoPercent ? m_taskbarNoPercent : false;
+    spaceBeforeUnit = m_hasTaskbarSpaceBeforeUnit ? m_taskbarSpaceBeforeUnit : false;
+  } else {
+    noPercent = m_hasMainNoPercent ? m_mainNoPercent : false;
+    spaceBeforeUnit = m_hasMainSpaceBeforeUnit ? m_mainSpaceBeforeUnit : false;
+  }
+
+  m_brightnessItem.SetFormatOptions(noPercent, spaceBeforeUnit);
 }
 
 void Plugin::RefreshBrightnessDisplay() {

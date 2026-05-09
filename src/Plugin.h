@@ -19,8 +19,17 @@ public:
 private:
   ITrafficMonitor *m_pApp = nullptr;
   BrightnessItem m_brightnessItem;
-  bool m_noPercent = false;
-  bool m_spaceBeforeUnit = false;
+
+  bool m_mainNoPercent = false;
+  bool m_mainSpaceBeforeUnit = false;
+  bool m_taskbarNoPercent = false;
+  bool m_taskbarSpaceBeforeUnit = false;
+  bool m_drawTaskbarWnd = false;
+  bool m_hasMainNoPercent = false;
+  bool m_hasMainSpaceBeforeUnit = false;
+  bool m_hasTaskbarNoPercent = false;
+  bool m_hasTaskbarSpaceBeforeUnit = false;
 
   void RefreshBrightnessDisplay();
+  void ApplyDisplayOptions();
 };
