@@ -35,29 +35,29 @@ int Plugin::GetCommandCount() { return 12; }
 const wchar_t *Plugin::GetCommandName(int command_index) {
   switch (command_index) {
   case 0:
-    return L"\u5173\u95ed\u663e\u793a\u5668";
+    return L"关闭显示器";
   case 1:
-    return L"\u4eae\u5ea6 0";
+    return L"亮度 0";
   case 2:
-    return L"\u4eae\u5ea6 10";
+    return L"亮度 10";
   case 3:
-    return L"\u4eae\u5ea6 20";
+    return L"亮度 20";
   case 4:
-    return L"\u4eae\u5ea6 30";
+    return L"亮度 30";
   case 5:
-    return L"\u4eae\u5ea6 40";
+    return L"亮度 40";
   case 6:
-    return L"\u4eae\u5ea6 50";
+    return L"亮度 50";
   case 7:
-    return L"\u4eae\u5ea6 60";
+    return L"亮度 60";
   case 8:
-    return L"\u4eae\u5ea6 70";
+    return L"亮度 70";
   case 9:
-    return L"\u4eae\u5ea6 80";
+    return L"亮度 80";
   case 10:
-    return L"\u4eae\u5ea6 90";
+    return L"亮度 90";
   case 11:
-    return L"\u4eae\u5ea6 100";
+    return L"亮度 100";
   default:
     return nullptr;
   }
@@ -71,8 +71,9 @@ void Plugin::OnPluginCommand(int command_index, void *hWnd, void *para) {
     MonitorController::TurnOff();
   } else if (command_index >= 1 && command_index <= 11) {
     int brightness = (command_index - 1) * 10;
-    if (MonitorController::SetBrightness(brightness)) {
-      RefreshBrightnessDisplay();
+    int actual = MonitorController::SetAndGetBrightness(brightness);
+    if (actual >= 0) {
+      m_brightnessItem.UpdateBrightness(actual);
     }
   }
 }

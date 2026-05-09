@@ -93,3 +93,26 @@ int MonitorController::GetBrightness() {
   ClosePhysicalMonitor(hMonitor);
   return success ? static_cast<int>(currentBrightness) : -1;
 }
+
+int MonitorController::SetAndGetBrightness(int value) {
+  HANDLE hMonitor = OpenFirstPhysicalMonitor();
+  if (!hMonitor)
+    return -1;
+
+  if (SetMonitorBrightness(hMonitor, static_cast<DWORD>(value)) == 0) {
+    ClosePhysicalMonitor(hMonitor);
+    return -1;
+  }
+
+  DWORD minBrightness = 0;
+  DWORD currentBrightness = 0;
+  DWORD maxBrightness = 0;
+  int result = -1;
+  if (GetMonitorBrightness(hMonitor, &minBrightness, &currentBrightness,
+                           &maxBrightness) != 0) {
+    result = static_cast<int>(currentBrightness);
+  }
+
+  ClosePhysicalMonitor(hMonitor);
+  return result;
+}
