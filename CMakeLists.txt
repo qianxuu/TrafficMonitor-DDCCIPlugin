@@ -7,6 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_library(DDCCIPlugin SHARED
     src/dllmain.cpp
     src/Plugin.cpp
+    src/BrightnessItem.cpp
     src/MonitorController.cpp
 )
 
