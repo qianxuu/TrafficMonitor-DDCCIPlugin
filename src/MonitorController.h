@@ -2,12 +2,11 @@
 
 #include <windows.h>
 
-class MonitorController
-{
+class MonitorController {
 public:
-    static bool TurnOff();
+  static bool TurnOff();
 
 private:
-    static BOOL CALLBACK MonitorEnumProc(
-        HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcClip, LPARAM dwData);
+  static BOOL CALLBACK MonitorEnumProc(HMONITOR hMonitor, HDC hdcMonitor,
+                                       LPRECT lprcClip, LPARAM dwData);
 };

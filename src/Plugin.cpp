@@ -1,59 +1,49 @@
 #include "Plugin.h"
 #include "MonitorController.h"
 
-int Plugin::GetAPIVersion() const
-{
-    return 7;
+int Plugin::GetAPIVersion() const { return 7; }
+
+IPluginItem *Plugin::GetItem(int index) {
+  (void)index;
+  return nullptr;
 }
 
-IPluginItem* Plugin::GetItem(int index)
-{
-    (void)index;
-    return nullptr;
+void Plugin::DataRequired() {}
+
+const wchar_t *Plugin::GetInfo(PluginInfoIndex index) {
+  switch (index) {
+  case TMI_NAME:
+    return L"DDC/CI Monitor Off";
+  case TMI_DESCRIPTION:
+    return L"Turn off the monitor via DDC/CI protocol";
+  case TMI_AUTHOR:
+    return L"qianxu";
+  case TMI_COPYRIGHT:
+    return L"Copyright (C) by qianxu 2026";
+  case TMI_VERSION:
+    return L"1.0.0";
+  case TMI_URL:
+    return L"https://github.com/qianxuu";
+  default:
+    return L"";
+  }
 }
 
-void Plugin::DataRequired()
-{
+int Plugin::GetCommandCount() { return 1; }
+
+const wchar_t *Plugin::GetCommandName(int command_index) {
+  if (command_index == 0)
+    return L"Turn off monitor";
+  return nullptr;
 }
 
-const wchar_t* Plugin::GetInfo(PluginInfoIndex index)
-{
-    switch (index)
-    {
-    case TMI_NAME:        return L"DDC/CI Monitor Off";
-    case TMI_DESCRIPTION: return L"Turn off the monitor via DDC/CI protocol";
-    case TMI_AUTHOR:      return L"";
-    case TMI_COPYRIGHT:   return L"";
-    case TMI_VERSION:     return L"1.0.0";
-    case TMI_URL:         return L"";
-    default:              return L"";
-    }
+void Plugin::OnPluginCommand(int command_index, void *hWnd, void *para) {
+  (void)hWnd;
+  (void)para;
+
+  if (command_index == 0) {
+    MonitorController::TurnOff();
+  }
 }
 
-int Plugin::GetCommandCount()
-{
-    return 1;
-}
-
-const wchar_t* Plugin::GetCommandName(int command_index)
-{
-    if (command_index == 0)
-        return L"Turn off monitor";
-    return nullptr;
-}
-
-void Plugin::OnPluginCommand(int command_index, void* hWnd, void* para)
-{
-    (void)hWnd;
-    (void)para;
-
-    if (command_index == 0)
-    {
-        MonitorController::TurnOff();
-    }
-}
-
-void Plugin::OnInitialize(ITrafficMonitor* pApp)
-{
-    m_pApp = pApp;
-}
+void Plugin::OnInitialize(ITrafficMonitor *pApp) { m_pApp = pApp; }
