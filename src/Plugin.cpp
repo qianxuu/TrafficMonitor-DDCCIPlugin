@@ -14,9 +14,9 @@ void Plugin::DataRequired() {}
 const wchar_t *Plugin::GetInfo(PluginInfoIndex index) {
   switch (index) {
   case TMI_NAME:
-    return L"DDC/CI Brightness Control";
+    return L"DDC/CI 显示器亮度控制";
   case TMI_DESCRIPTION:
-    return L"Control monitor brightness and power via DDC/CI";
+    return L"通过 DDC/CI 协议控制显示器亮度";
   case TMI_AUTHOR:
     return L"qianxu";
   case TMI_COPYRIGHT:

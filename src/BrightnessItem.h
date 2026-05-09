@@ -12,6 +12,7 @@ public:
 
   void UpdateBrightness(int value);
   void SetFormatOptions(bool noPercent, bool spaceBeforeUnit);
+  const wchar_t *GetFormattedSampleText() const;
 
 private:
   int m_brightness = -1;

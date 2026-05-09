@@ -104,6 +104,8 @@ int MonitorController::SetAndGetBrightness(int value) {
     return -1;
   }
 
+  Sleep(100); // DDC/CI needs time to apply brightness change
+
   DWORD minBrightness = 0;
   DWORD currentBrightness = 0;
   DWORD maxBrightness = 0;
