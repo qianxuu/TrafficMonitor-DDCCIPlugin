@@ -1,4 +1,5 @@
 #include "Plugin.h"
+#include "MonitorController.h"
 
 int Plugin::GetAPIVersion() const
 {
@@ -43,10 +44,13 @@ const wchar_t* Plugin::GetCommandName(int command_index)
 
 void Plugin::OnPluginCommand(int command_index, void* hWnd, void* para)
 {
-    (void)command_index;
     (void)hWnd;
     (void)para;
-    // Will be implemented in Task 4
+
+    if (command_index == 0)
+    {
+        MonitorController::TurnOff();
+    }
 }
 
 void Plugin::OnInitialize(ITrafficMonitor* pApp)
