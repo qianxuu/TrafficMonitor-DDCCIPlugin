@@ -96,7 +96,21 @@ static void Test_CommandBrightnessReadbackHandlesTickWraparound() {
   assert(g_getBrightnessCalls == 1);
 }
 
+static void Test_CommandNames_AreStable() {
+  Plugin plugin;
+
+  assert(plugin.GetCommandCount() == 13);
+  assert(std::wcscmp(plugin.GetCommandName(-1), L"") == 0);
+  assert(std::wcscmp(plugin.GetCommandName(0), L"亮度 0%") == 0);
+  assert(std::wcscmp(plugin.GetCommandName(5), L"亮度 50%") == 0);
+  assert(std::wcscmp(plugin.GetCommandName(10), L"亮度 100%") == 0);
+  assert(std::wcscmp(plugin.GetCommandName(11), L"电源 待机") == 0);
+  assert(std::wcscmp(plugin.GetCommandName(12), L"电源 关机") == 0);
+  assert(std::wcscmp(plugin.GetCommandName(13), L"") == 0);
+}
+
 int main() {
+  Test_CommandNames_AreStable();
   Test_DataRequired_ReadsUntilFirstSuccessfulBrightness();
   Test_CommandBrightnessDelaysReadbackWithoutBlocking();
   Test_CommandBrightnessReadbackHandlesTickWraparound();

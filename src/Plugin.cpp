@@ -1,8 +1,17 @@
 #include "Plugin.h"
 #include "MonitorController.h"
+#include <array>
 #include <cwchar>
 
 static constexpr DWORD kBrightnessReadbackDelayMs = 100;
+static constexpr auto kCommandNames = std::to_array<const wchar_t *>(
+    {L"亮度 0%", L"亮度 10%", L"亮度 20%", L"亮度 30%", L"亮度 40%",
+     L"亮度 50%", L"亮度 60%", L"亮度 70%", L"亮度 80%", L"亮度 90%",
+     L"亮度 100%", L"电源 待机", L"电源 关机"});
+static constexpr int kBrightnessCommandCount = 11;
+static constexpr int kStandbyCommandIndex = kBrightnessCommandCount;
+static constexpr int kTurnOffCommandIndex = kStandbyCommandIndex + 1;
+static_assert(kCommandNames.size() == kTurnOffCommandIndex + 1);
 static Plugin::TickCountProvider g_tickCountProvider = GetTickCount;
 
 static bool ParseBoolData(const wchar_t *data) {
@@ -64,46 +73,22 @@ const wchar_t *Plugin::GetInfo(PluginInfoIndex index) {
   }
 }
 
-int Plugin::GetCommandCount() { return 13; }
+int Plugin::GetCommandCount() { return static_cast<int>(kCommandNames.size()); }
 
 const wchar_t *Plugin::GetCommandName(int command_index) {
-  switch (command_index) {
-  case 0:
-    return L"亮度 0%";
-  case 1:
-    return L"亮度 10%";
-  case 2:
-    return L"亮度 20%";
-  case 3:
-    return L"亮度 30%";
-  case 4:
-    return L"亮度 40%";
-  case 5:
-    return L"亮度 50%";
-  case 6:
-    return L"亮度 60%";
-  case 7:
-    return L"亮度 70%";
-  case 8:
-    return L"亮度 80%";
-  case 9:
-    return L"亮度 90%";
-  case 10:
-    return L"亮度 100%";
-  case 11:
-    return L"电源 待机";
-  case 12:
-    return L"电源 关机";
-  default:
+  if (command_index < 0 ||
+      command_index >= static_cast<int>(kCommandNames.size())) {
     return L"";
   }
+
+  return kCommandNames[command_index];
 }
 
 void Plugin::OnPluginCommand(int command_index, void *hWnd, void *para) {
   (void)hWnd;
   (void)para;
 
-  if (command_index >= 0 && command_index <= 10) {
+  if (command_index >= 0 && command_index < kBrightnessCommandCount) {
     int value = command_index * 10;
     if (MonitorController::SetBrightness(value)) {
       m_brightnessItem.UpdateBrightness(value);
@@ -111,9 +96,9 @@ void Plugin::OnPluginCommand(int command_index, void *hWnd, void *para) {
       m_nextBrightnessUpdateTick =
           CurrentTickCount() + kBrightnessReadbackDelayMs;
     }
-  } else if (command_index == 11) {
+  } else if (command_index == kStandbyCommandIndex) {
     MonitorController::Standby();
-  } else if (command_index == 12) {
+  } else if (command_index == kTurnOffCommandIndex) {
     MonitorController::TurnOff();
   }
 }
