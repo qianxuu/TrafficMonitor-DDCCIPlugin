@@ -3,6 +3,7 @@
 #include <highlevelmonitorconfigurationapi.h>
 #include <lowlevelmonitorconfigurationapi.h>
 #include <physicalmonitorenumerationapi.h>
+#include <vector>
 #include <windows.h>
 
 #pragma comment(lib, "dxva2.lib")
@@ -18,8 +19,8 @@ BOOL CALLBACK MonitorController::MonitorEnumProc(HMONITOR hMonitor,
   (void)hdcMonitor;
   (void)lprcClip;
 
-  auto *ctx = reinterpret_cast<EnumContext *>(
-      dwData); // NOLINT: Win32 LPARAM ↔ pointer cast
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+  auto *ctx = reinterpret_cast<EnumContext *>(dwData);
   ctx->hResult = hMonitor;
   return FALSE;
 }
@@ -27,8 +28,9 @@ BOOL CALLBACK MonitorController::MonitorEnumProc(HMONITOR hMonitor,
 HANDLE MonitorController::OpenFirstPhysicalMonitor() {
   EnumContext ctx;
   HDC hdc = GetDC(nullptr);
-  EnumDisplayMonitors(hdc, nullptr, MonitorEnumProc,
-                      reinterpret_cast<LPARAM>(&ctx));
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+  const LPARAM contextParam = reinterpret_cast<LPARAM>(&ctx);
+  EnumDisplayMonitors(hdc, nullptr, MonitorEnumProc, contextParam);
   ReleaseDC(nullptr, hdc);
 
   if (!ctx.hResult)
@@ -40,86 +42,71 @@ HANDLE MonitorController::OpenFirstPhysicalMonitor() {
       cPhysicalMonitors == 0)
     return nullptr;
 
-  PHYSICAL_MONITOR *pPhysicalMonitors = new PHYSICAL_MONITOR[cPhysicalMonitors];
+  std::vector<PHYSICAL_MONITOR> physicalMonitors(cPhysicalMonitors);
   if (!GetPhysicalMonitorsFromHMONITOR(ctx.hResult, cPhysicalMonitors,
-                                       pPhysicalMonitors)) {
-    delete[] pPhysicalMonitors;
+                                       physicalMonitors.data())) {
     return nullptr;
   }
 
-  HANDLE hPhysicalMonitor = pPhysicalMonitors[0].hPhysicalMonitor;
-  delete[] pPhysicalMonitors;
+  HANDLE hPhysicalMonitor = physicalMonitors[0].hPhysicalMonitor;
+  for (DWORD i = 1; i < cPhysicalMonitors; ++i) {
+    DestroyPhysicalMonitor(physicalMonitors[i].hPhysicalMonitor);
+  }
   return hPhysicalMonitor;
 }
 
-void MonitorController::ClosePhysicalMonitor(HANDLE hMonitor) {
-  if (hMonitor) {
-    DestroyPhysicalMonitor(hMonitor);
+struct MonitorHandle {
+  HANDLE h;
+  MonitorHandle(HANDLE handle) : h(handle) {}
+  MonitorHandle(const MonitorHandle &) = delete;
+  MonitorHandle &operator=(const MonitorHandle &) = delete;
+  ~MonitorHandle() {
+    if (h) {
+      DestroyPhysicalMonitor(h);
+    }
   }
-}
+  operator HANDLE() const { return h; }
+};
 
-bool MonitorController::TurnOff() {
-  HANDLE hMonitor = OpenFirstPhysicalMonitor();
-  if (!hMonitor)
-    return false;
-
-  bool success = SetVCPFeature(hMonitor, 0xD6, 0x04) != 0;
-
-  ClosePhysicalMonitor(hMonitor);
-  return success;
-}
-
-bool MonitorController::SetBrightness(int value) {
-  HANDLE hMonitor = OpenFirstPhysicalMonitor();
-  if (!hMonitor)
-    return false;
-
-  int v = std::clamp(value, 0, 100);
-  DWORD clamped = static_cast<DWORD>(v);
-  bool success = SetMonitorBrightness(hMonitor, clamped) != 0;
-
-  ClosePhysicalMonitor(hMonitor);
-  return success;
-}
-
-int MonitorController::GetBrightness() {
-  HANDLE hMonitor = OpenFirstPhysicalMonitor();
-  if (!hMonitor)
-    return -1;
-
+static int ReadBrightness(HANDLE hMonitor) {
   DWORD minBrightness = 0;
   DWORD currentBrightness = 0;
   DWORD maxBrightness = 0;
   bool success = GetMonitorBrightness(hMonitor, &minBrightness,
                                       &currentBrightness, &maxBrightness) != 0;
 
-  ClosePhysicalMonitor(hMonitor);
   return success ? static_cast<int>(currentBrightness) : -1;
 }
 
-int MonitorController::SetAndGetBrightness(int value) {
-  HANDLE hMonitor = OpenFirstPhysicalMonitor();
+bool MonitorController::Standby() {
+  MonitorHandle hMonitor(OpenFirstPhysicalMonitor());
+  if (!hMonitor)
+    return false;
+
+  return SetVCPFeature(hMonitor, 0xD6, 0x04) != 0;
+}
+
+bool MonitorController::TurnOff() {
+  MonitorHandle hMonitor(OpenFirstPhysicalMonitor());
+  if (!hMonitor)
+    return false;
+
+  return SetVCPFeature(hMonitor, 0xD6, 0x05) != 0;
+}
+
+bool MonitorController::SetBrightness(int value) {
+  MonitorHandle hMonitor(OpenFirstPhysicalMonitor());
+  if (!hMonitor)
+    return false;
+
+  int v = std::clamp(value, 0, 100);
+  return SetMonitorBrightness(hMonitor, static_cast<DWORD>(v)) != 0;
+}
+
+int MonitorController::GetBrightness() {
+  MonitorHandle hMonitor(OpenFirstPhysicalMonitor());
   if (!hMonitor)
     return -1;
 
-  int v = std::clamp(value, 0, 100);
-
-  if (SetMonitorBrightness(hMonitor, static_cast<DWORD>(v)) == 0) {
-    ClosePhysicalMonitor(hMonitor);
-    return -1;
-  }
-
-  Sleep(100); // DDC/CI needs time to apply brightness change
-
-  DWORD minBrightness = 0;
-  DWORD currentBrightness = 0;
-  DWORD maxBrightness = 0;
-  int result = -1;
-  if (GetMonitorBrightness(hMonitor, &minBrightness, &currentBrightness,
-                           &maxBrightness) != 0) {
-    result = static_cast<int>(currentBrightness);
-  }
-
-  ClosePhysicalMonitor(hMonitor);
-  return result;
+  return ReadBrightness(hMonitor);
 }

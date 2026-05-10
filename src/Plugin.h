@@ -2,9 +2,12 @@
 
 #include "BrightnessItem.h"
 #include "PluginInterface.h"
+#include <windows.h>
 
 class Plugin : public ITMPlugin {
 public:
+  using TickCountProvider = DWORD (*)();
+
   // ITMPlugin
   int GetAPIVersion() const override;
   IPluginItem *GetItem(int index) override;
@@ -15,6 +18,8 @@ public:
   void OnPluginCommand(int command_index, void *hWnd, void *para) override;
   void OnInitialize(ITrafficMonitor *pApp) override;
   void OnExtenedInfo(ExtendedInfoIndex index, const wchar_t *data) override;
+
+  static void SetTickCountProviderForTest(TickCountProvider provider);
 
 private:
   ITrafficMonitor *m_pApp = nullptr;
@@ -29,7 +34,8 @@ private:
   bool m_hasMainSpaceBeforeUnit = false;
   bool m_hasTaskbarNoPercent = false;
   bool m_hasTaskbarSpaceBeforeUnit = false;
+  bool m_brightnessNeedsUpdate = true;
+  DWORD m_nextBrightnessUpdateTick = 0;
 
-  void RefreshBrightnessDisplay();
   void ApplyDisplayOptions();
 };

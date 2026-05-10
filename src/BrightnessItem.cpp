@@ -1,5 +1,6 @@
 #include "BrightnessItem.h"
 #include <cstdio>
+#include <cwchar>
 
 const wchar_t *BrightnessItem::GetItemName() const { return L"显示器亮度"; }
 
@@ -30,10 +31,7 @@ void BrightnessItem::SetFormatOptions(bool noPercent, bool spaceBeforeUnit) {
 
 void BrightnessItem::FormatValueText() {
   if (m_brightness < 0) {
-    m_valueText[0] = L'N';
-    m_valueText[1] = L'/';
-    m_valueText[2] = L'A';
-    m_valueText[3] = L'\0';
+    wcscpy_s(m_valueText, L"N/A");
     return;
   }
 
