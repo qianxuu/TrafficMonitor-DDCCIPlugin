@@ -20,12 +20,16 @@ public:
   int GetCommandCount() override;
   const wchar_t *GetCommandName(int command_index) override;
   void OnPluginCommand(int command_index, void *hWnd, void *para) override;
+  OptionReturn ShowOptionsDialog(void *hParent) override;
   void OnInitialize(ITrafficMonitor *pApp) override;
   void OnExtenedInfo(ExtendedInfoIndex index, const wchar_t *data) override;
 
   static void SetTickCountProviderForTest(TickCountProvider provider);
 
+  OptionReturn SavePresetTextForTest(const std::wstring &text);
+
 private:
+  OptionReturn SavePresetText(const std::wstring &text);
   ITrafficMonitor *m_pApp = nullptr;
   BrightnessItem m_brightnessItem;
 

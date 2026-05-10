@@ -232,6 +232,37 @@ static void Test_Plugin_InvalidConfigShowsOnlyPowerCommands() {
   assert(std::wcscmp(plugin.GetCommandName(1), L"电源 关机") == 0);
 }
 
+static void Test_Plugin_SavePresetTextUpdatesCommandsAndFile() {
+  auto dir = TestConfigDir();
+  Plugin plugin;
+  plugin.OnExtenedInfo(ITMPlugin::EI_CONFIG_DIR, dir.wstring().c_str());
+
+  auto result = plugin.SavePresetTextForTest(L"15 45 90");
+
+  assert(result == ITMPlugin::OR_OPTION_CHANGED);
+  assert(plugin.GetCommandCount() == 5);
+  assert(std::wcscmp(plugin.GetCommandName(0), L"亮度 15%") == 0);
+  assert(std::wcscmp(plugin.GetCommandName(1), L"亮度 45%") == 0);
+  assert(std::wcscmp(plugin.GetCommandName(2), L"亮度 90%") == 0);
+  auto loaded = BrightnessPresetsConfig::LoadOrInitialize(dir.wstring());
+  assert(loaded.text == L"15 45 90");
+}
+
+static void Test_Plugin_SaveInvalidPresetTextKeepsOnlyPowerCommands() {
+  auto dir = TestConfigDir();
+  Plugin plugin;
+  plugin.OnExtenedInfo(ITMPlugin::EI_CONFIG_DIR, dir.wstring().c_str());
+
+  auto result = plugin.SavePresetTextForTest(L"15 bad 90");
+
+  assert(result == ITMPlugin::OR_OPTION_CHANGED);
+  assert(plugin.GetCommandCount() == 2);
+  assert(std::wcscmp(plugin.GetCommandName(0), L"电源 待机") == 0);
+  assert(std::wcscmp(plugin.GetCommandName(1), L"电源 关机") == 0);
+  auto loaded = BrightnessPresetsConfig::LoadOrInitialize(dir.wstring());
+  assert(loaded.text == L"15 bad 90");
+}
+
 int main() {
   Test_BrightnessPresetParser_ParsesDefaults();
   Test_BrightnessPresetParser_DeduplicatesInInputOrder();
@@ -244,6 +275,8 @@ int main() {
   Test_CommandBrightness_UsesPresetValue();
   Test_Plugin_LoadsPresetsFromConfigDirectory();
   Test_Plugin_InvalidConfigShowsOnlyPowerCommands();
+  Test_Plugin_SavePresetTextUpdatesCommandsAndFile();
+  Test_Plugin_SaveInvalidPresetTextKeepsOnlyPowerCommands();
   Test_DataRequired_ReadsUntilFirstSuccessfulBrightness();
   Test_CommandBrightnessDelaysReadbackWithoutBlocking();
   Test_CommandBrightnessReadbackHandlesTickWraparound();
