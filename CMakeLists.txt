@@ -10,6 +10,7 @@ add_library(DDCCIPlugin SHARED
     src/dllmain.cpp
     src/Plugin.cpp
     src/BrightnessItem.cpp
+    src/BrightnessPresetsConfig.cpp
     src/MonitorController.cpp
 )
 
@@ -39,6 +40,7 @@ add_executable(test_plugin
     test/test_plugin.cpp
     src/Plugin.cpp
     src/BrightnessItem.cpp
+    src/BrightnessPresetsConfig.cpp
 )
 target_include_directories(test_plugin PRIVATE include src)
 add_test(NAME test_plugin COMMAND test_plugin)

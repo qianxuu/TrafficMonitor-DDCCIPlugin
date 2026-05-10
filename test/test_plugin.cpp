@@ -1,3 +1,4 @@
+#include "BrightnessPresetsConfig.h"
 #include "MonitorController.h"
 #include "Plugin.h"
 #include <cassert>
@@ -30,6 +31,39 @@ int MonitorController::GetBrightness() {
   int index = g_getBrightnessCalls;
   ++g_getBrightnessCalls;
   return g_brightnessValues[index];
+}
+
+static void Test_BrightnessPresetParser_ParsesDefaults() {
+  auto result = BrightnessPresetsConfig::ParsePresetText(L"0 25 50 75 100");
+
+  assert(result.valid);
+  assert((result.presets == std::vector<int>{0, 25, 50, 75, 100}));
+}
+
+static void Test_BrightnessPresetParser_DeduplicatesInInputOrder() {
+  auto result = BrightnessPresetsConfig::ParsePresetText(L"50 20 50 0 20");
+
+  assert(result.valid);
+  assert((result.presets == std::vector<int>{50, 20, 0}));
+}
+
+static void Test_BrightnessPresetParser_InvalidTextClearsList() {
+  auto invalidToken = BrightnessPresetsConfig::ParsePresetText(L"10 abc 50");
+  auto outOfRange = BrightnessPresetsConfig::ParsePresetText(L"10 120 50");
+  auto empty = BrightnessPresetsConfig::ParsePresetText(L"   ");
+
+  assert(!invalidToken.valid);
+  assert(invalidToken.presets.empty());
+  assert(!outOfRange.valid);
+  assert(outOfRange.presets.empty());
+  assert(!empty.valid);
+  assert(empty.presets.empty());
+}
+
+static void Test_BrightnessPresetFormatter_FormatsSpaceSeparatedText() {
+  std::vector<int> presets{0, 25, 50, 75, 100};
+
+  assert(BrightnessPresetsConfig::FormatPresetText(presets) == L"0 25 50 75 100");
 }
 
 static void Test_DataRequired_ReadsUntilFirstSuccessfulBrightness() {
@@ -110,6 +144,10 @@ static void Test_CommandNames_AreStable() {
 }
 
 int main() {
+  Test_BrightnessPresetParser_ParsesDefaults();
+  Test_BrightnessPresetParser_DeduplicatesInInputOrder();
+  Test_BrightnessPresetParser_InvalidTextClearsList();
+  Test_BrightnessPresetFormatter_FormatsSpaceSeparatedText();
   Test_CommandNames_AreStable();
   Test_DataRequired_ReadsUntilFirstSuccessfulBrightness();
   Test_CommandBrightnessDelaysReadbackWithoutBlocking();
