@@ -10,7 +10,6 @@
 
 namespace BrightnessPresetsConfig {
 namespace {
-const std::wstring kDefaultPresetText = L"0 25 50 75 100";
 const wchar_t *kConfigFileName = L"DDCCIPlugin.ini";
 const wchar_t *kConfigKey = L"BrightnessPresets=";
 
@@ -56,7 +55,10 @@ bool IsDigitsOnly(const std::wstring &token) {
 }
 } // namespace
 
-const std::wstring &DefaultPresetText() { return kDefaultPresetText; }
+const std::wstring &DefaultPresetText() {
+  static const std::wstring text = L"0 25 50 75 100";
+  return text;
+}
 
 ParseResult ParsePresetText(const std::wstring &text) {
   ParseResult result;
