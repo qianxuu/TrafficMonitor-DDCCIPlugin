@@ -268,15 +268,20 @@ ITMPlugin::OptionReturn Plugin::ShowOptionsDialog(void *hParent) {
     }
   }
 
-  if (getMessageResult == 0) {
-    PostQuitMessage(static_cast<int>(msg.wParam));
+  const bool shouldRepostQuit = getMessageResult == 0;
+  const int quitExitCode = shouldRepostQuit ? static_cast<int>(msg.wParam) : 0;
+
+  if (IsWindow(dialog)) {
+    DestroyWindow(dialog);
   }
 
   if (parent != nullptr) {
     EnableWindow(parent, TRUE);
-  }
-  if (parent != nullptr) {
     SetActiveWindow(parent);
+  }
+
+  if (shouldRepostQuit) {
+    PostQuitMessage(quitExitCode);
   }
 
   if (state.accepted) {
