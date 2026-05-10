@@ -3,6 +3,8 @@
 #include "Plugin.h"
 #include <cassert>
 #include <cwchar>
+#include <filesystem>
+#include <fstream>
 
 static int g_getBrightnessCalls = 0;
 static int g_setBrightnessCalls = 0;
@@ -31,6 +33,13 @@ int MonitorController::GetBrightness() {
   int index = g_getBrightnessCalls;
   ++g_getBrightnessCalls;
   return g_brightnessValues[index];
+}
+
+static std::filesystem::path TestConfigDir() {
+  auto dir = std::filesystem::temp_directory_path() / L"DDCCIPluginTests";
+  std::filesystem::remove_all(dir);
+  std::filesystem::create_directories(dir);
+  return dir;
 }
 
 static void Test_BrightnessPresetParser_ParsesDefaults() {
@@ -67,6 +76,40 @@ static void Test_BrightnessPresetFormatter_FormatsSpaceSeparatedText() {
   std::vector<int> presets{0, 25, 50, 75, 100};
 
   assert(BrightnessPresetsConfig::FormatPresetText(presets) == L"0 25 50 75 100");
+}
+
+static void Test_BrightnessPresetConfig_InitializesMissingFile() {
+  auto dir = TestConfigDir();
+
+  auto loaded = BrightnessPresetsConfig::LoadOrInitialize(dir.wstring());
+
+  assert(loaded.text == L"0 25 50 75 100");
+  assert(loaded.parse.valid);
+  assert((loaded.parse.presets == std::vector<int>{0, 25, 50, 75, 100}));
+  assert(std::filesystem::exists(dir / L"DDCCIPlugin.ini"));
+}
+
+static void Test_BrightnessPresetConfig_LoadsExistingFile() {
+  auto dir = TestConfigDir();
+  std::wofstream file(dir / L"DDCCIPlugin.ini");
+  file << L"BrightnessPresets=10 30 70\n";
+  file.close();
+
+  auto loaded = BrightnessPresetsConfig::LoadOrInitialize(dir.wstring());
+
+  assert(loaded.text == L"10 30 70");
+  assert(loaded.parse.valid);
+  assert((loaded.parse.presets == std::vector<int>{10, 30, 70}));
+}
+
+static void Test_BrightnessPresetConfig_SavesText() {
+  auto dir = TestConfigDir();
+
+  assert(BrightnessPresetsConfig::SavePresetText(dir.wstring(), L"5 55 95"));
+  auto loaded = BrightnessPresetsConfig::LoadOrInitialize(dir.wstring());
+
+  assert(loaded.text == L"5 55 95");
+  assert((loaded.parse.presets == std::vector<int>{5, 55, 95}));
 }
 
 static void Test_DataRequired_ReadsUntilFirstSuccessfulBrightness() {
@@ -151,6 +194,9 @@ int main() {
   Test_BrightnessPresetParser_DeduplicatesInInputOrder();
   Test_BrightnessPresetParser_InvalidTextClearsList();
   Test_BrightnessPresetFormatter_FormatsSpaceSeparatedText();
+  Test_BrightnessPresetConfig_InitializesMissingFile();
+  Test_BrightnessPresetConfig_LoadsExistingFile();
+  Test_BrightnessPresetConfig_SavesText();
   Test_CommandNames_AreStable();
   Test_DataRequired_ReadsUntilFirstSuccessfulBrightness();
   Test_CommandBrightnessDelaysReadbackWithoutBlocking();
