@@ -6,3 +6,4 @@ build/
 *.lib
 *.pdb
 x64/
+.worktrees/
