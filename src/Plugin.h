@@ -40,6 +40,8 @@ private:
   bool m_hasTaskbarSpaceBeforeUnit = false;
   bool m_brightnessNeedsUpdate = true;
   DWORD m_nextBrightnessUpdateTick = 0;
+  std::wstring m_configDir;
+  std::wstring m_presetText;
   std::vector<int> m_brightnessPresets;
   std::vector<std::wstring> m_brightnessCommandNames;
 

@@ -205,6 +205,33 @@ static void Test_CommandBrightness_UsesPresetValue() {
   assert(std::wcscmp(plugin.GetItem(0)->GetItemValueText(), L"25%") == 0);
 }
 
+static void Test_Plugin_LoadsPresetsFromConfigDirectory() {
+  auto dir = TestConfigDir();
+  BrightnessPresetsConfig::SavePresetText(dir.wstring(), L"5 55 95");
+  Plugin plugin;
+
+  plugin.OnExtenedInfo(ITMPlugin::EI_CONFIG_DIR, dir.wstring().c_str());
+
+  assert(plugin.GetCommandCount() == 5);
+  assert(std::wcscmp(plugin.GetCommandName(0), L"亮度 5%") == 0);
+  assert(std::wcscmp(plugin.GetCommandName(1), L"亮度 55%") == 0);
+  assert(std::wcscmp(plugin.GetCommandName(2), L"亮度 95%") == 0);
+  assert(std::wcscmp(plugin.GetCommandName(3), L"电源 待机") == 0);
+  assert(std::wcscmp(plugin.GetCommandName(4), L"电源 关机") == 0);
+}
+
+static void Test_Plugin_InvalidConfigShowsOnlyPowerCommands() {
+  auto dir = TestConfigDir();
+  BrightnessPresetsConfig::SavePresetText(dir.wstring(), L"10 abc 50");
+  Plugin plugin;
+
+  plugin.OnExtenedInfo(ITMPlugin::EI_CONFIG_DIR, dir.wstring().c_str());
+
+  assert(plugin.GetCommandCount() == 2);
+  assert(std::wcscmp(plugin.GetCommandName(0), L"电源 待机") == 0);
+  assert(std::wcscmp(plugin.GetCommandName(1), L"电源 关机") == 0);
+}
+
 int main() {
   Test_BrightnessPresetParser_ParsesDefaults();
   Test_BrightnessPresetParser_DeduplicatesInInputOrder();
@@ -215,6 +242,8 @@ int main() {
   Test_BrightnessPresetConfig_SavesText();
   Test_CommandNames_UseDefaultDynamicPresets();
   Test_CommandBrightness_UsesPresetValue();
+  Test_Plugin_LoadsPresetsFromConfigDirectory();
+  Test_Plugin_InvalidConfigShowsOnlyPowerCommands();
   Test_DataRequired_ReadsUntilFirstSuccessfulBrightness();
   Test_CommandBrightnessDelaysReadbackWithoutBlocking();
   Test_CommandBrightnessReadbackHandlesTickWraparound();

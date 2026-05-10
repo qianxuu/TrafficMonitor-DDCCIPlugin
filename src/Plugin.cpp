@@ -26,6 +26,7 @@ void Plugin::SetTickCountProviderForTest(TickCountProvider provider) {
 }
 
 void Plugin::ApplyPresetText(const std::wstring &text) {
+  m_presetText = text;
   auto parsed = BrightnessPresetsConfig::ParsePresetText(text);
   m_brightnessPresets = parsed.presets;
   m_brightnessCommandNames.clear();
@@ -143,6 +144,13 @@ void Plugin::OnExtenedInfo(ExtendedInfoIndex index, const wchar_t *data) {
   case EI_TASKBAR_WND_SPERATE_WITH_SPACE:
     m_taskbarSpaceBeforeUnit = ParseBoolData(data);
     m_hasTaskbarSpaceBeforeUnit = true;
+    break;
+  case EI_CONFIG_DIR:
+    if (data != nullptr) {
+      m_configDir = data;
+      auto config = BrightnessPresetsConfig::LoadOrInitialize(m_configDir);
+      ApplyPresetText(config.text);
+    }
     break;
   default:
     break;
