@@ -96,7 +96,7 @@ int main() {
 Run:
 
 ```bash
-cmake --build build --target test_plugin && ctest --test-dir build -R test_plugin --output-on-failure
+cmake --build build --target test_plugin && ctest --test-dir build -C Debug -R test_plugin --output-on-failure
 ```
 
 Expected: FAIL at compile time because `BrightnessPresetsConfig.h` does not exist.
@@ -232,7 +232,7 @@ add_executable(test_plugin
 Run:
 
 ```bash
-cmake --build build --target test_plugin && ctest --test-dir build -R test_plugin --output-on-failure
+cmake --build build --target test_plugin && ctest --test-dir build -C Debug -R test_plugin --output-on-failure
 ```
 
 Expected: PASS.
@@ -324,7 +324,7 @@ Update `main()` to run these after formatter tests:
 Run:
 
 ```bash
-cmake --build build --target test_plugin && ctest --test-dir build -R test_plugin --output-on-failure
+cmake --build build --target test_plugin && ctest --test-dir build -C Debug -R test_plugin --output-on-failure
 ```
 
 Expected: FAIL at compile time because `LoadOrInitialize()` and `SavePresetText()` are not declared.
@@ -430,7 +430,7 @@ bool SavePresetText(const std::wstring &configDir, const std::wstring &text) {
 Run:
 
 ```bash
-cmake --build build --target test_plugin && ctest --test-dir build -R test_plugin --output-on-failure
+cmake --build build --target test_plugin && ctest --test-dir build -C Debug -R test_plugin --output-on-failure
 ```
 
 Expected: PASS.
@@ -521,7 +521,7 @@ Remove the old `Test_CommandNames_AreStable();` call.
 Run:
 
 ```bash
-cmake --build build --target test_plugin && ctest --test-dir build -R test_plugin --output-on-failure
+cmake --build build --target test_plugin && ctest --test-dir build -C Debug -R test_plugin --output-on-failure
 ```
 
 Expected: FAIL because the plugin still exposes 13 fixed commands and command index 1 sets brightness 10.
@@ -673,7 +673,7 @@ Replace the command branch in `OnPluginCommand()`:
 Run:
 
 ```bash
-cmake --build build --target test_plugin && ctest --test-dir build -R test_plugin --output-on-failure
+cmake --build build --target test_plugin && ctest --test-dir build -C Debug -R test_plugin --output-on-failure
 ```
 
 Expected: PASS.
@@ -739,7 +739,7 @@ Update `main()` to run these after dynamic command tests:
 Run:
 
 ```bash
-cmake --build build --target test_plugin && ctest --test-dir build -R test_plugin --output-on-failure
+cmake --build build --target test_plugin && ctest --test-dir build -C Debug -R test_plugin --output-on-failure
 ```
 
 Expected: FAIL because `Plugin::OnExtenedInfo(EI_CONFIG_DIR, ...)` does not load preset config yet.
@@ -787,7 +787,7 @@ Add this case to the `switch` in `Plugin::OnExtenedInfo()` before `default`:
 Run:
 
 ```bash
-cmake --build build --target test_plugin && ctest --test-dir build -R test_plugin --output-on-failure
+cmake --build build --target test_plugin && ctest --test-dir build -C Debug -R test_plugin --output-on-failure
 ```
 
 Expected: PASS.
@@ -863,7 +863,7 @@ Update `main()` to run these after config load tests:
 Run:
 
 ```bash
-cmake --build build --target test_plugin && ctest --test-dir build -R test_plugin --output-on-failure
+cmake --build build --target test_plugin && ctest --test-dir build -C Debug -R test_plugin --output-on-failure
 ```
 
 Expected: FAIL because `SavePresetTextForTest()` has no implementation.
@@ -979,7 +979,7 @@ ITMPlugin::OptionReturn Plugin::ShowOptionsDialog(void *hParent) {
 Run:
 
 ```bash
-cmake --build build --target test_plugin && ctest --test-dir build -R test_plugin --output-on-failure
+cmake --build build --target test_plugin && ctest --test-dir build -C Debug -R test_plugin --output-on-failure
 ```
 
 Expected: PASS.
@@ -1008,7 +1008,7 @@ git commit -m "feat: add brightness preset options dialog"
 Run:
 
 ```bash
-cmake --build build && ctest --test-dir build --output-on-failure
+cmake --build build && ctest --test-dir build -C Debug --output-on-failure
 ```
 
 Expected: all configured tests PASS, including `test_brightness_item` and `test_plugin`.
