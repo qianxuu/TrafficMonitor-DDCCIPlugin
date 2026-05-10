@@ -263,6 +263,22 @@ static void Test_Plugin_SaveInvalidPresetTextKeepsOnlyPowerCommands() {
   assert(loaded.text == L"15 bad 90");
 }
 
+static void Test_Plugin_SaveBeforeConfigDirLeavesDefaultsUnchanged() {
+  Plugin plugin;
+
+  auto result = plugin.SavePresetTextForTest(L"15 45 90");
+
+  assert(result == ITMPlugin::OR_OPTION_UNCHANGED);
+  assert(plugin.GetCommandCount() == 7);
+  assert(std::wcscmp(plugin.GetCommandName(0), L"亮度 0%") == 0);
+  assert(std::wcscmp(plugin.GetCommandName(1), L"亮度 25%") == 0);
+  assert(std::wcscmp(plugin.GetCommandName(2), L"亮度 50%") == 0);
+  assert(std::wcscmp(plugin.GetCommandName(3), L"亮度 75%") == 0);
+  assert(std::wcscmp(plugin.GetCommandName(4), L"亮度 100%") == 0);
+  assert(std::wcscmp(plugin.GetCommandName(5), L"电源 待机") == 0);
+  assert(std::wcscmp(plugin.GetCommandName(6), L"电源 关机") == 0);
+}
+
 int main() {
   Test_BrightnessPresetParser_ParsesDefaults();
   Test_BrightnessPresetParser_DeduplicatesInInputOrder();
@@ -277,6 +293,7 @@ int main() {
   Test_Plugin_InvalidConfigShowsOnlyPowerCommands();
   Test_Plugin_SavePresetTextUpdatesCommandsAndFile();
   Test_Plugin_SaveInvalidPresetTextKeepsOnlyPowerCommands();
+  Test_Plugin_SaveBeforeConfigDirLeavesDefaultsUnchanged();
   Test_DataRequired_ReadsUntilFirstSuccessfulBrightness();
   Test_CommandBrightnessDelaysReadbackWithoutBlocking();
   Test_CommandBrightnessReadbackHandlesTickWraparound();

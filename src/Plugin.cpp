@@ -229,20 +229,28 @@ ITMPlugin::OptionReturn Plugin::ShowOptionsDialog(void *hParent) {
     return OR_OPTION_UNCHANGED;
   }
 
-  CreateWindowExW(0, L"STATIC", L"亮度预设（空格分隔，0 到 100）：",
-                  WS_CHILD | WS_VISIBLE, 12, 14, 320, 20, dialog, nullptr,
-                  instance, nullptr);
+  HWND label = CreateWindowExW(0, L"STATIC", L"亮度预设（空格分隔，0 到 100）：",
+                               WS_CHILD | WS_VISIBLE, 12, 14, 320, 20, dialog,
+                               nullptr, instance, nullptr);
   state.edit = CreateWindowExW(WS_EX_CLIENTEDGE, L"EDIT", state.text,
                                WS_CHILD | WS_VISIBLE | ES_AUTOHSCROLL, 12, 40,
                                320, 24, dialog,
                                reinterpret_cast<HMENU>(
                                    static_cast<INT_PTR>(kPresetEditId)),
                                instance, nullptr);
-  CreateWindowExW(0, L"BUTTON", L"确定", WS_CHILD | WS_VISIBLE, 176, 80, 72,
-                  24, dialog, reinterpret_cast<HMENU>(IDOK), instance, nullptr);
-  CreateWindowExW(0, L"BUTTON", L"取消", WS_CHILD | WS_VISIBLE, 260, 80, 72,
-                  24, dialog, reinterpret_cast<HMENU>(IDCANCEL), instance,
-                  nullptr);
+  HWND okButton = CreateWindowExW(0, L"BUTTON", L"确定", WS_CHILD | WS_VISIBLE,
+                                  176, 80, 72, 24, dialog,
+                                  reinterpret_cast<HMENU>(IDOK), instance,
+                                  nullptr);
+  HWND cancelButton = CreateWindowExW(
+      0, L"BUTTON", L"取消", WS_CHILD | WS_VISIBLE, 260, 80, 72, 24, dialog,
+      reinterpret_cast<HMENU>(IDCANCEL), instance, nullptr);
+
+  if (label == nullptr || state.edit == nullptr || okButton == nullptr ||
+      cancelButton == nullptr) {
+    DestroyWindow(dialog);
+    return OR_OPTION_UNCHANGED;
+  }
 
   if (parent != nullptr) {
     EnableWindow(parent, FALSE);
@@ -251,11 +259,17 @@ ITMPlugin::OptionReturn Plugin::ShowOptionsDialog(void *hParent) {
   SetFocus(state.edit);
 
   MSG msg;
-  while (!state.done && GetMessageW(&msg, nullptr, 0, 0) > 0) {
+  BOOL getMessageResult = TRUE;
+  while (!state.done &&
+         (getMessageResult = GetMessageW(&msg, nullptr, 0, 0)) > 0) {
     if (!IsDialogMessageW(dialog, &msg)) {
       TranslateMessage(&msg);
       DispatchMessageW(&msg);
     }
+  }
+
+  if (getMessageResult == 0) {
+    PostQuitMessage(static_cast<int>(msg.wParam));
   }
 
   if (parent != nullptr) {
