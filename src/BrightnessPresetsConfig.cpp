@@ -2,6 +2,7 @@
 
 #include <cwctype>
 #include <sstream>
+#include <stdexcept>
 #include <unordered_set>
 
 namespace BrightnessPresetsConfig {
@@ -36,7 +37,12 @@ ParseResult ParsePresetText(const std::wstring &text) {
       return {};
     }
 
-    int value = std::stoi(token);
+    int value = 0;
+    try {
+      value = std::stoi(token);
+    } catch (const std::out_of_range &) {
+      return {};
+    }
     if (value < 0 || value > 100) {
       return {};
     }

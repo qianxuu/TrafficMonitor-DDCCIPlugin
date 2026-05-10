@@ -51,6 +51,7 @@ static void Test_BrightnessPresetParser_InvalidTextClearsList() {
   auto invalidToken = BrightnessPresetsConfig::ParsePresetText(L"10 abc 50");
   auto outOfRange = BrightnessPresetsConfig::ParsePresetText(L"10 120 50");
   auto empty = BrightnessPresetsConfig::ParsePresetText(L"   ");
+  auto hugeNumber = BrightnessPresetsConfig::ParsePresetText(L"999999999999999999999");
 
   assert(!invalidToken.valid);
   assert(invalidToken.presets.empty());
@@ -58,6 +59,8 @@ static void Test_BrightnessPresetParser_InvalidTextClearsList() {
   assert(outOfRange.presets.empty());
   assert(!empty.valid);
   assert(empty.presets.empty());
+  assert(!hugeNumber.valid);
+  assert(hugeNumber.presets.empty());
 }
 
 static void Test_BrightnessPresetFormatter_FormatsSpaceSeparatedText() {
