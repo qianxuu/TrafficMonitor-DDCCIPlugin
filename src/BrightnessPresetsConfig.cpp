@@ -1,5 +1,6 @@
 #include "BrightnessPresetsConfig.h"
 
+#include <cwchar>
 #include <cwctype>
 #include <filesystem>
 #include <fstream>
