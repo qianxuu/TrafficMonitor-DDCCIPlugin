@@ -8,12 +8,14 @@
 
 static int g_getBrightnessCalls = 0;
 static int g_setBrightnessCalls = 0;
+static int g_lastSetBrightness = -1;
 static DWORD g_currentTick = 0;
 static int g_brightnessValues[] = {-1, 42, 80};
 
 static void ResetControllerState() {
   g_getBrightnessCalls = 0;
   g_setBrightnessCalls = 0;
+  g_lastSetBrightness = -1;
   g_currentTick = 0;
 }
 
@@ -25,7 +27,7 @@ bool MonitorController::TurnOff() { return true; }
 
 bool MonitorController::SetBrightness(int value) {
   ++g_setBrightnessCalls;
-  (void)value;
+  g_lastSetBrightness = value;
   return true;
 }
 
@@ -135,7 +137,7 @@ static void Test_CommandBrightnessDelaysReadbackWithoutBlocking() {
   Plugin::SetTickCountProviderForTest(TestGetTickCount);
   Plugin plugin;
 
-  plugin.OnPluginCommand(5, nullptr, nullptr);
+  plugin.OnPluginCommand(2, nullptr, nullptr);
   assert(g_setBrightnessCalls == 1);
   assert(std::wcscmp(plugin.GetItem(0)->GetItemValueText(), L"50%") == 0);
 
@@ -161,7 +163,7 @@ static void Test_CommandBrightnessReadbackHandlesTickWraparound() {
   Plugin plugin;
 
   g_currentTick = 0xFFFFFFF0;
-  plugin.OnPluginCommand(5, nullptr, nullptr);
+  plugin.OnPluginCommand(2, nullptr, nullptr);
   assert(std::wcscmp(plugin.GetItem(0)->GetItemValueText(), L"50%") == 0);
 
   plugin.DataRequired();
@@ -176,17 +178,31 @@ static void Test_CommandBrightnessReadbackHandlesTickWraparound() {
   assert(g_getBrightnessCalls == 1);
 }
 
-static void Test_CommandNames_AreStable() {
+static void Test_CommandNames_UseDefaultDynamicPresets() {
   Plugin plugin;
 
-  assert(plugin.GetCommandCount() == 13);
+  assert(plugin.GetCommandCount() == 7);
   assert(std::wcscmp(plugin.GetCommandName(-1), L"") == 0);
   assert(std::wcscmp(plugin.GetCommandName(0), L"亮度 0%") == 0);
-  assert(std::wcscmp(plugin.GetCommandName(5), L"亮度 50%") == 0);
-  assert(std::wcscmp(plugin.GetCommandName(10), L"亮度 100%") == 0);
-  assert(std::wcscmp(plugin.GetCommandName(11), L"电源 待机") == 0);
-  assert(std::wcscmp(plugin.GetCommandName(12), L"电源 关机") == 0);
-  assert(std::wcscmp(plugin.GetCommandName(13), L"") == 0);
+  assert(std::wcscmp(plugin.GetCommandName(1), L"亮度 25%") == 0);
+  assert(std::wcscmp(plugin.GetCommandName(2), L"亮度 50%") == 0);
+  assert(std::wcscmp(plugin.GetCommandName(3), L"亮度 75%") == 0);
+  assert(std::wcscmp(plugin.GetCommandName(4), L"亮度 100%") == 0);
+  assert(std::wcscmp(plugin.GetCommandName(5), L"电源 待机") == 0);
+  assert(std::wcscmp(plugin.GetCommandName(6), L"电源 关机") == 0);
+  assert(std::wcscmp(plugin.GetCommandName(7), L"") == 0);
+}
+
+static void Test_CommandBrightness_UsesPresetValue() {
+  ResetControllerState();
+  Plugin::SetTickCountProviderForTest(TestGetTickCount);
+  Plugin plugin;
+
+  plugin.OnPluginCommand(1, nullptr, nullptr);
+
+  assert(g_setBrightnessCalls == 1);
+  assert(g_lastSetBrightness == 25);
+  assert(std::wcscmp(plugin.GetItem(0)->GetItemValueText(), L"25%") == 0);
 }
 
 int main() {
@@ -197,7 +213,8 @@ int main() {
   Test_BrightnessPresetConfig_InitializesMissingFile();
   Test_BrightnessPresetConfig_LoadsExistingFile();
   Test_BrightnessPresetConfig_SavesText();
-  Test_CommandNames_AreStable();
+  Test_CommandNames_UseDefaultDynamicPresets();
+  Test_CommandBrightness_UsesPresetValue();
   Test_DataRequired_ReadsUntilFirstSuccessfulBrightness();
   Test_CommandBrightnessDelaysReadbackWithoutBlocking();
   Test_CommandBrightnessReadbackHandlesTickWraparound();

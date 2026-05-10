@@ -1,17 +1,12 @@
 #include "Plugin.h"
+#include "BrightnessPresetsConfig.h"
 #include "MonitorController.h"
-#include <array>
 #include <cwchar>
+#include <string>
 
 static constexpr DWORD kBrightnessReadbackDelayMs = 100;
-static constexpr auto kCommandNames = std::to_array<const wchar_t *>(
-    {L"亮度 0%", L"亮度 10%", L"亮度 20%", L"亮度 30%", L"亮度 40%",
-     L"亮度 50%", L"亮度 60%", L"亮度 70%", L"亮度 80%", L"亮度 90%",
-     L"亮度 100%", L"电源 待机", L"电源 关机"});
-static constexpr int kBrightnessCommandCount = 11;
-static constexpr int kStandbyCommandIndex = kBrightnessCommandCount;
-static constexpr int kTurnOffCommandIndex = kStandbyCommandIndex + 1;
-static_assert(kCommandNames.size() == kTurnOffCommandIndex + 1);
+static constexpr const wchar_t *kStandbyCommandName = L"电源 待机";
+static constexpr const wchar_t *kTurnOffCommandName = L"电源 关机";
 static Plugin::TickCountProvider g_tickCountProvider = GetTickCount;
 
 static bool ParseBoolData(const wchar_t *data) {
@@ -29,6 +24,18 @@ static bool HasTickReached(DWORD current, DWORD target) {
 void Plugin::SetTickCountProviderForTest(TickCountProvider provider) {
   g_tickCountProvider = provider ? provider : GetTickCount;
 }
+
+void Plugin::ApplyPresetText(const std::wstring &text) {
+  auto parsed = BrightnessPresetsConfig::ParsePresetText(text);
+  m_brightnessPresets = parsed.presets;
+  m_brightnessCommandNames.clear();
+
+  for (int preset : m_brightnessPresets) {
+    m_brightnessCommandNames.push_back(L"亮度 " + std::to_wstring(preset) + L"%");
+  }
+}
+
+Plugin::Plugin() { ApplyPresetText(BrightnessPresetsConfig::DefaultPresetText()); }
 
 int Plugin::GetAPIVersion() const { return 7; }
 
@@ -73,32 +80,43 @@ const wchar_t *Plugin::GetInfo(PluginInfoIndex index) {
   }
 }
 
-int Plugin::GetCommandCount() { return static_cast<int>(kCommandNames.size()); }
+int Plugin::GetCommandCount() {
+  return static_cast<int>(m_brightnessPresets.size()) + 2;
+}
 
 const wchar_t *Plugin::GetCommandName(int command_index) {
-  if (command_index < 0 ||
-      command_index >= static_cast<int>(kCommandNames.size())) {
+  if (command_index < 0 || command_index >= GetCommandCount()) {
     return L"";
   }
 
-  return kCommandNames[command_index];
+  int brightnessCount = static_cast<int>(m_brightnessPresets.size());
+  if (command_index < brightnessCount) {
+    return m_brightnessCommandNames[command_index].c_str();
+  }
+
+  if (command_index == brightnessCount) {
+    return kStandbyCommandName;
+  }
+
+  return kTurnOffCommandName;
 }
 
 void Plugin::OnPluginCommand(int command_index, void *hWnd, void *para) {
   (void)hWnd;
   (void)para;
 
-  if (command_index >= 0 && command_index < kBrightnessCommandCount) {
-    int value = command_index * 10;
+  int brightnessCount = static_cast<int>(m_brightnessPresets.size());
+  if (command_index >= 0 && command_index < brightnessCount) {
+    int value = m_brightnessPresets[command_index];
     if (MonitorController::SetBrightness(value)) {
       m_brightnessItem.UpdateBrightness(value);
       m_brightnessNeedsUpdate = true;
       m_nextBrightnessUpdateTick =
           CurrentTickCount() + kBrightnessReadbackDelayMs;
     }
-  } else if (command_index == kStandbyCommandIndex) {
+  } else if (command_index == brightnessCount) {
     MonitorController::Standby();
-  } else if (command_index == kTurnOffCommandIndex) {
+  } else if (command_index == brightnessCount + 1) {
     MonitorController::TurnOff();
   }
 }

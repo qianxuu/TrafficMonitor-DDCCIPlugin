@@ -2,11 +2,15 @@
 
 #include "BrightnessItem.h"
 #include "PluginInterface.h"
+#include <string>
+#include <vector>
 #include <windows.h>
 
 class Plugin : public ITMPlugin {
 public:
   using TickCountProvider = DWORD (*)();
+
+  Plugin();
 
   // ITMPlugin
   int GetAPIVersion() const override;
@@ -36,6 +40,9 @@ private:
   bool m_hasTaskbarSpaceBeforeUnit = false;
   bool m_brightnessNeedsUpdate = true;
   DWORD m_nextBrightnessUpdateTick = 0;
+  std::vector<int> m_brightnessPresets;
+  std::vector<std::wstring> m_brightnessCommandNames;
 
   void ApplyDisplayOptions();
+  void ApplyPresetText(const std::wstring &text);
 };
