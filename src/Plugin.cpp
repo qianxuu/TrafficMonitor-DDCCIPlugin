@@ -78,7 +78,7 @@ const wchar_t *Plugin::GetInfo(PluginInfoIndex index) {
   case TMI_COPYRIGHT:
     return L"Copyright (C) by qianxu 2026";
   case TMI_VERSION:
-    return L"1.1.0";
+    return L"1.2.0";
   case TMI_URL:
     return L"https://github.com/qianxuu";
   default:

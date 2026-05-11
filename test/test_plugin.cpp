@@ -180,6 +180,12 @@ static void Test_CommandBrightnessReadbackHandlesTickWraparound() {
   assert(g_getBrightnessCalls == 1);
 }
 
+static void Test_PluginInfo_Version() {
+  Plugin plugin;
+
+  assert(std::wcscmp(plugin.GetInfo(ITMPlugin::TMI_VERSION), L"1.2.0") == 0);
+}
+
 static void Test_CommandNames_UseDefaultDynamicPresets() {
   Plugin plugin;
 
@@ -289,6 +295,7 @@ int RunTests() {
   Test_BrightnessPresetConfig_InitializesMissingFile();
   Test_BrightnessPresetConfig_LoadsExistingFile();
   Test_BrightnessPresetConfig_SavesText();
+  Test_PluginInfo_Version();
   Test_CommandNames_UseDefaultDynamicPresets();
   Test_CommandBrightness_UsesPresetValue();
   Test_Plugin_LoadsPresetsFromConfigDirectory();
