@@ -92,10 +92,6 @@ build/Debug/DDCCIPlugin.dll
 - 显示器待机/关机命令的实际行为取决于显示器固件实现
 - 插件不会绕过系统或显示器自身的亮度控制限制
 
-## 版本
-
-当前版本：`1.2.0`
-
 ## License
 
-待定。
+本项目使用 MIT License，详见 [LICENSE](LICENSE)。
