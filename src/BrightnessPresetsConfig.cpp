@@ -1,5 +1,6 @@
 #include "BrightnessPresetsConfig.h"
 
+#include <algorithm>
 #include <cwchar>
 #include <cwctype>
 #include <filesystem>
@@ -30,7 +31,8 @@ std::wstring ReadPresetText(const std::filesystem::path &path) {
   return L"";
 }
 
-bool WritePresetText(const std::filesystem::path &path, const std::wstring &text) {
+bool WritePresetText(const std::filesystem::path &path,
+                     const std::wstring &text) {
   std::wofstream file(path, std::ios::trunc);
   if (!file) {
     return false;
@@ -41,17 +43,9 @@ bool WritePresetText(const std::filesystem::path &path, const std::wstring &text
 }
 
 bool IsDigitsOnly(const std::wstring &token) {
-  if (token.empty()) {
-    return false;
-  }
-
-  for (wchar_t ch : token) {
-    if (!std::iswdigit(ch)) {
-      return false;
-    }
-  }
-
-  return true;
+  return !token.empty() && std::ranges::all_of(token, [](wchar_t ch) {
+    return std::iswdigit(ch);
+  });
 }
 } // namespace
 

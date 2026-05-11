@@ -62,7 +62,8 @@ static void Test_BrightnessPresetParser_InvalidTextClearsList() {
   auto invalidToken = BrightnessPresetsConfig::ParsePresetText(L"10 abc 50");
   auto outOfRange = BrightnessPresetsConfig::ParsePresetText(L"10 120 50");
   auto empty = BrightnessPresetsConfig::ParsePresetText(L"   ");
-  auto hugeNumber = BrightnessPresetsConfig::ParsePresetText(L"999999999999999999999");
+  auto hugeNumber =
+      BrightnessPresetsConfig::ParsePresetText(L"999999999999999999999");
 
   assert(!invalidToken.valid);
   assert(invalidToken.presets.empty());
@@ -77,7 +78,8 @@ static void Test_BrightnessPresetParser_InvalidTextClearsList() {
 static void Test_BrightnessPresetFormatter_FormatsSpaceSeparatedText() {
   std::vector<int> presets{0, 25, 50, 75, 100};
 
-  assert(BrightnessPresetsConfig::FormatPresetText(presets) == L"0 25 50 75 100");
+  assert(BrightnessPresetsConfig::FormatPresetText(presets) ==
+         L"0 25 50 75 100");
 }
 
 static void Test_BrightnessPresetConfig_InitializesMissingFile() {
@@ -279,7 +281,7 @@ static void Test_Plugin_SaveBeforeConfigDirLeavesDefaultsUnchanged() {
   assert(std::wcscmp(plugin.GetCommandName(6), L"电源 关机") == 0);
 }
 
-int main() {
+int RunTests() {
   Test_BrightnessPresetParser_ParsesDefaults();
   Test_BrightnessPresetParser_DeduplicatesInInputOrder();
   Test_BrightnessPresetParser_InvalidTextClearsList();
@@ -299,4 +301,12 @@ int main() {
   Test_CommandBrightnessReadbackHandlesTickWraparound();
   Plugin::SetTickCountProviderForTest(nullptr);
   return 0;
+}
+
+int main() {
+  try {
+    return RunTests();
+  } catch (...) {
+    return 1;
+  }
 }

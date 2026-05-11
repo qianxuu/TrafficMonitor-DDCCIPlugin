@@ -1,7 +1,10 @@
 #include "Plugin.h"
 #include <windows.h>
 
-static Plugin g_plugin;
+static Plugin &GetPluginInstance() {
+  static Plugin plugin;
+  return plugin;
+}
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call,
                       LPVOID lpReserved) {
@@ -14,5 +17,5 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call,
 }
 
 extern "C" __declspec(dllexport) ITMPlugin *TMPluginGetInstance() {
-  return &g_plugin;
+  return &GetPluginInstance();
 }
