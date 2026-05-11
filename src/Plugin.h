@@ -8,7 +8,7 @@
 
 class Plugin : public ITMPlugin {
 public:
-  using TickCountProvider = DWORD (*)();
+  using TickCountProvider = DWORD(WINAPI *)();
 
   Plugin();
 

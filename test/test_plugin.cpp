@@ -19,7 +19,7 @@ static void ResetControllerState() {
   g_currentTick = 0;
 }
 
-DWORD TestGetTickCount() { return g_currentTick; }
+DWORD WINAPI TestGetTickCount() { return g_currentTick; }
 
 bool MonitorController::Standby() { return true; }
 
