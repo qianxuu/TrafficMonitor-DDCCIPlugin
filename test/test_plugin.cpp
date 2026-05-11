@@ -183,7 +183,7 @@ static void Test_CommandBrightnessReadbackHandlesTickWraparound() {
 static void Test_PluginInfo_Version() {
   Plugin plugin;
 
-  assert(std::wcscmp(plugin.GetInfo(ITMPlugin::TMI_VERSION), L"1.2.0") == 0);
+  assert(std::wcscmp(plugin.GetInfo(ITMPlugin::TMI_VERSION), L"1.2.1") == 0);
 }
 
 static void Test_CommandNames_UseDefaultDynamicPresets() {
