@@ -79,11 +79,9 @@ static int ReadBrightness(HANDLE hMonitor) {
 }
 
 bool MonitorController::Standby() {
-  MonitorHandle hMonitor(OpenFirstPhysicalMonitor());
-  if (!hMonitor)
-    return false;
-
-  return SetVCPFeature(hMonitor, 0xD6, 0x04) != 0;
+  SendMessageW(HWND_BROADCAST, WM_SYSCOMMAND, SC_MONITORPOWER,
+               static_cast<LPARAM>(2));
+  return true;
 }
 
 bool MonitorController::TurnOff() {
