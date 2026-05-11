@@ -1,0 +1,73 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build ${{ matrix.arch }}
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x64
+            cmake_arch: x64
+          - arch: x86
+            cmake_arch: Win32
+          - arch: arm64
+            cmake_arch: ARM64
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure CMake
+        run: cmake -B build -A ${{ matrix.cmake_arch }}
+
+      - name: Build
+        run: cmake --build build --config Release
+
+      - name: Run tests
+        if: matrix.arch == 'x64'
+        working-directory: build
+        run: ctest -C Release --output-on-failure
+
+      - name: Rename artifact
+        shell: pwsh
+        run: |
+          Copy-Item "build/Release/DDCCIPlugin.dll" -Destination "DDCCIPlugin-${{ matrix.arch }}.dll"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: DDCCIPlugin-${{ matrix.arch }}
+          path: DDCCIPlugin-${{ matrix.arch }}.dll
+          if-no-files-found: error
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/*.dll
+          generate_release_notes: true
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-') }}
